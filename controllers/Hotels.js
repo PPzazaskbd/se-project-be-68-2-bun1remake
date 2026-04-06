@@ -1,5 +1,6 @@
 const Hotel = require('../models/Hotel');
 const Booking = require('../models/booking');
+const hotelFilter = require('../utils/filter');
 
 // @desc    GET all hotels
 // @route   GET /api/v1/hotels
@@ -10,16 +11,39 @@ exports.getHotels = async (req, res, next) => {
   const removeFields = ['select', 'sort', 'page', 'limit'];
   removeFields.forEach(param => delete reqQuery[param]);
 
-  let queryStr = JSON.stringify(reqQuery);
-  queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, m => `$${m}`);
+  let mongoQuery = {};
 
-  let query = Hotel.find(JSON.parse(queryStr));
+  if (reqQuery.priceRange) {
+    const p = reqQuery.priceRange;
+    if (p === '1') mongoQuery.price = { $lt: 30 };
+    else if (p === '2') mongoQuery.price = { $gte: 30, $lt: 80 };
+    else if (p === '3') mongoQuery.price = { $gte: 80, $lt: 200 };
+    else if (p === '4') mongoQuery.price = { $gte: 200 };
+    delete reqQuery.priceRange;
+  }
+
+  if (reqQuery.review) {
+    mongoQuery.review = { $gte: Number(reqQuery.review) };
+    delete reqQuery.review;
+  }
+  
+  if (reqQuery.facility) {
+    const facilities = reqQuery.facility.split(',');
+    mongoQuery["specializations.facility"] = { $all: facilities };
+    delete reqQuery.facility;
+  }
+
+  let remainingQueryStr = JSON.stringify(reqQuery);
+  remainingQueryStr = remainingQueryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, m => `$${m}`);
+
+  const finalQuery = { ...JSON.parse(remainingQueryStr), ...mongoQuery };
+
+  let query = Hotel.find(finalQuery);
 
   if (req.query.select) {
     const fields = req.query.select.split(',').join(' ');
     query = query.select(fields);
   }
-
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
     query = query.sort(sortBy);
@@ -30,17 +54,15 @@ exports.getHotels = async (req, res, next) => {
   const page = parseInt(req.query.page, 10) || 1;
   const limit = parseInt(req.query.limit, 10) || 25;
   const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
-  const total = await Hotel.countDocuments();
+  const total = await Hotel.countDocuments(finalQuery);
 
   query = query.skip(startIndex).limit(limit);
-
   const hotels = await query;
 
   const pagination = {};
-  if (endIndex < total) pagination.next = { page: page + 1, limit };
+  if ((page * limit) < total) pagination.next = { page: page + 1, limit };
   if (startIndex > 0) pagination.prev = { page: page - 1, limit };
-
+  
   res.status(200).json({
     success: true,
     count: hotels.length,

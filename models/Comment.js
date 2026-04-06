@@ -27,4 +27,12 @@ const CommentSchema = new mongoose.Schema({
     }
 });
 
+CommentSchema.post('save', function() {
+    this.model('Hotel').calculateAverageRating(this.hotelId);
+});
+
+CommentSchema.post('findOneAndDelete', async function(doc) {
+    if (doc) await doc.model('Hotel').calculateAverageRating(doc.hotelId);
+});
+
 module.exports = mongoose.model('Comment',CommentSchema);
