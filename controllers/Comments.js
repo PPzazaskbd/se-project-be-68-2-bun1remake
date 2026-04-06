@@ -18,7 +18,16 @@ exports.getComments = async (req, res, next) => {
   }
 
   try {
-    const comments = await query.populate({ path: 'hotel', select: 'name' });
+    const comments = await query.populate(
+        {
+    path: 'hotel',
+    select: 'name imgsrc'
+  },
+  {
+    path: 'user',
+    select: 'name email' 
+  }
+    );
     res.status(200).json({ success: true, count: comments.length, data: comments });
   } catch (err) {
     res.status(500).json({ success: false, message: "Server Error" });

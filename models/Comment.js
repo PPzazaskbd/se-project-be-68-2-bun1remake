@@ -24,6 +24,10 @@ const CommentSchema = new mongoose.Schema({
         required: [true,'Please add rating'],
         min: 0,
         max: 5
+    },
+     createdAt: {
+    type: Date,
+    default: Date.now
     }
 });
 
