@@ -2,13 +2,12 @@ const express = require('express');
 const {
   getComments,
   createComment,
-  updateComment,
-  deleteComment
+  //updateComment,
+  //deleteComment
 } = require('../controllers/Comments');
 
-const { protect, authorize } = require('../middleware/auth');
+const { protect } = require('../middleware/auth');
 
-// IMPORTANT: need mergeParams to access req.params.hotelId when nested under /hotels/:hotelId/bookings
 const router = express.Router({ mergeParams: true });
 
 router
@@ -18,7 +17,7 @@ router
 
 router
   .route('/:id')
-  .put(protect, updateComment)
-  .delete(protect, deleteComment);
+  //.put(protect, updateComment)
+  //.delete(protect, deleteComment);
 
 module.exports = router;

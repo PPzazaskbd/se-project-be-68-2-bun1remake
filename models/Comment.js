@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 
 const CommentSchema = new mongoose.Schema({
-    commentDate:{
-        type : Date,
-        required : [true,'Date is missing']
-    },
     user:{
         type : mongoose.Schema.Types.ObjectId,
         ref:'User',
@@ -25,7 +21,7 @@ const CommentSchema = new mongoose.Schema({
         min: 0,
         max: 5
     },
-     createdAt: {
+    createdAt: {
     type: Date,
     default: Date.now
     }
