@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment');
-
+const Hotel = require('../models/Hotel');
+const User = require('../models/User');
 // @desc    GET all comments
 // @route   GET /api/v1/comments
 // @access  Public
@@ -19,14 +20,14 @@ exports.getComments = async (req, res, next) => {
 
   try {
     const comments = await query.populate(
-        {
+        [{
     path: 'hotel',
     select: 'name imgsrc'
   },
   {
     path: 'user',
     select: 'name email' 
-  }
+  }]    
     );
     res.status(200).json({ success: true, count: comments.length, data: comments });
   } catch (err) {
@@ -38,11 +39,28 @@ exports.getComments = async (req, res, next) => {
 // @route   POST /api/v1/comments
 // @access  Private
 exports.createComment = async (req, res, next) => {
-  const comment = await Comment.create(req.body);
+  try {
+    // Add hotelId to req.body from URL params
+    req.body.hotel = req.params.hotelId;
+    
+    // Add userId to req.body from logged in user
+    req.body.user = req.user.id;
 
-  res.status(201).json({
-    success: true,
-    data: comment
-  });
+    // Check if the hotel exists before commenting
+    const hotel = await Hotel.findById(req.params.hotelId);
+    if (!hotel) {
+      return res.status(404).json({ success: false, message: "Hotel not found" });
+    }
+
+    const comment = await Comment.create(req.body);
+
+    res.status(201).json({
+      success: true,
+      data: comment
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Could not create comment" });
+  }
 };
 
