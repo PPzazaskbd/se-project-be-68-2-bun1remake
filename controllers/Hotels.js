@@ -1,6 +1,7 @@
 const Hotel = require('../models/Hotel');
 const Booking = require('../models/booking');
 const hotelFilter = require('../utils/filter');
+const Comment = require('../models/Comment');
 
 // @desc    GET all hotels
 // @route   GET /api/v1/hotels
@@ -22,53 +23,56 @@ exports.getHotels = async (req, res, next) => {
     delete reqQuery.priceRange;
   }
 
-  if (reqQuery.review) {
-    mongoQuery.review = { $gte: Number(reqQuery.review) };
-    delete reqQuery.review;
-  }
-  
-  if (reqQuery.facility) {
-    const facilities = reqQuery.facility.split(',');
-    mongoQuery["specializations.facility"] = { $all: facilities };
-    delete reqQuery.facility;
-  }
-
   let remainingQueryStr = JSON.stringify(reqQuery);
   remainingQueryStr = remainingQueryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, m => `$${m}`);
+  const baseQuery = { ...JSON.parse(remainingQueryStr), ...mongoQuery };
 
-  const finalQuery = { ...JSON.parse(remainingQueryStr), ...mongoQuery };
+  const pipeline = [{$match:baseQuery}];
 
-  let query = Hotel.find(finalQuery);
-
-  if (req.query.select) {
-    const fields = req.query.select.split(',').join(' ');
-    query = query.select(fields);
+  if (reqQuery.review) {
+    pipeline.push(
+      { $lookup: { from: 'comments', localField: '_id', foreignField: 'hotelId', as: 'comments' } },
+      { $addFields: { averageRating: { $avg: '$comments.rating' } } },
+      { $match: { averageRating: { $gte: Number(req.query.review) } } }
+    );
   }
+
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
-    query = query.sort(sortBy);
+    const sortObj = {};
+    sortBy.split(' ').forEach(f => {
+      if(f.startsWith('-')) sortObj[f.substring(1)] = -1;
+      else sortObj[f] = 1;
+    });
+    pipeline.push({ $sort: sortObj });
   } else {
-    query = query.sort('-createdAt');
+    pipeline.push({ $sort: { createdAt: -1 } });
   }
 
-  const page = parseInt(req.query.page, 10) || 1;
-  const limit = parseInt(req.query.limit, 10) || 25;
-  const startIndex = (page - 1) * limit;
-  const total = await Hotel.countDocuments(finalQuery);
+  try{
+    let hotels = await Hotel.aggregate(pipeline);
 
-  query = query.skip(startIndex).limit(limit);
-  const hotels = await query;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
+    const startIndex = (page - 1) * limit;
+    const total = hotels.length;
 
-  const pagination = {};
-  if ((page * limit) < total) pagination.next = { page: page + 1, limit };
-  if (startIndex > 0) pagination.prev = { page: page - 1, limit };
-  
-  res.status(200).json({
-    success: true,
-    count: hotels.length,
-    pagination,
-    data: hotels
-  });
+    const paginatedHotels = hotels.slice(startIndex, startIndex + limit);
+
+    const pagination = {};
+    if (startIndex + limit < total) pagination.next = { page: page + 1, limit };
+    if (startIndex > 0) pagination.prev = { page: page - 1, limit };
+    
+    res.status(200).json({
+      success: true,
+      count: total,
+      pagination,
+      data: paginatedHotels
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
 };
 
 // @desc    GET single hotel
