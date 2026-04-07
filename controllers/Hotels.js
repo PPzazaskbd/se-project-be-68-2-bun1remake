@@ -27,21 +27,37 @@ exports.getHotels = async (req, res, next) => {
   remainingQueryStr = remainingQueryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, m => `$${m}`);
   const baseQuery = { ...JSON.parse(remainingQueryStr), ...mongoQuery };
 
-  const pipeline = [{$match:baseQuery}];
+  const pipeline = [{ $match: baseQuery }];
 
-  if (reqQuery.review) {
-    pipeline.push(
-      { $lookup: { from: 'comments', localField: '_id', foreignField: 'hotelId', as: 'comments' } },
-      { $addFields: { averageRating: { $avg: '$comments.rating' } } },
-      { $match: { averageRating: { $gte: Number(req.query.review) } } }
-    );
+  pipeline.push(
+    { 
+      $lookup: { 
+        from: 'comments', 
+        localField: '_id', 
+        foreignField: 'hotel', 
+        as: 'commentData' 
+      } 
+    },
+    { 
+      $addFields: { 
+        review: { $avg: '$commentData.rating' },
+        reviewCount: { $size: '$commentData' }
+      } 
+    },
+    { $project: { commentData: 0 } }
+  );
+
+  if (req.query.review) {
+    pipeline.push({ 
+      $match: { averageRating: { $gte: Number(req.query.review) } } 
+    });
   }
 
   if (req.query.sort) {
     const sortBy = req.query.sort.split(',').join(' ');
     const sortObj = {};
     sortBy.split(' ').forEach(f => {
-      if(f.startsWith('-')) sortObj[f.substring(1)] = -1;
+      if (f.startsWith('-')) sortObj[f.substring(1)] = -1;
       else sortObj[f] = 1;
     });
     pipeline.push({ $sort: sortObj });
@@ -49,7 +65,7 @@ exports.getHotels = async (req, res, next) => {
     pipeline.push({ $sort: { createdAt: -1 } });
   }
 
-  try{
+  try {
     let hotels = await Hotel.aggregate(pipeline);
 
     const page = parseInt(req.query.page, 10) || 1;
