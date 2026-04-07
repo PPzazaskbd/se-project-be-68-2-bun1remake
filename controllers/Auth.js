@@ -46,7 +46,7 @@ function getRequestCorrelationId(req) {
     if (value) {
       return value;
     }
-  }
+  } 
 
   return 'n/a';
 }
