@@ -1,0 +1,159 @@
+{
+  "info": {
+    "_postman_id": "8cfbd740-4a93-4b6a-ab74-a624b649a92a",
+    "name": "Hotelmania",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "48216336",
+    "_collection_link": "https://go.postman.co/collection/48216336-8cfbd740-4a93-4b6a-ab74-a624b649a92a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "GET hotels",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "description": "JSON Type",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"intDate\" : \"2022-05-11T10:00:06Z\", \r\n    \"user\" : \"69a7bc07de94635021b1f64b\"\r\n   // \"matching_specialization\" : \"Tax Advisory and Compliance\"\r\n}"
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/hotels",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "hotels"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"TOKEN\",pm.response.json().token)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\":\"admin@example.com\",\r\n    \"password\":\"12345678\"\r\n}   ",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/auth/login",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Comment",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"user\":\"69a1d898ac4e63c4d4140ab4\",\r\n    \"text\":\"WALL OF TEXT\",\r\n    \"rating\":4\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{URL}}/api/v1/hotels/69bf6e712a233d444785d24a/comments/",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "hotels",
+            "69bf6e712a233d444785d24a",
+            "comments",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "New Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{URL}}/api/v1/hotels/69bf6e712a233d444785d24a/comments/",
+          "host": [
+            "{{URL}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "hotels",
+            "69bf6e712a233d444785d24a",
+            "comments",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
