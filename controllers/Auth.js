@@ -661,7 +661,8 @@ exports.login = async (req, res) => {
 
     return timedJson(res, 500, {
       success: false,
-      message: 'Server error'
+      message: 'Server error',
+      debug: err && err.message
     }, 'api.auth.login', startedAt);
   }
 };
