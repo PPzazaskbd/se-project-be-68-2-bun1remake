@@ -106,14 +106,20 @@ UserSchema.pre('save', async function () {
    SIGN JWT
 =============================== */
 UserSchema.methods.getSignedJwtToken = function () {
+  const secret = process.env.JWT_SECRET || 'mysecretkey';
+  // Use 30-day expiry as default; env var must match ms/jsonwebtoken format so we fall back to seconds
+  const rawExpire = process.env.JWT_EXPIRE;
+  const expire = rawExpire && /^\d+(ms|s|m|h|d|w|y)?$/.test(rawExpire.trim())
+    ? rawExpire.trim()
+    : 30 * 24 * 60 * 60; // 30 days in seconds
   return jwt.sign(
     {
       id: this._id,
       role: this.role
     },
-    process.env.JWT_SECRET || 'mysecretkey',
+    secret,
     {
-      expiresIn: process.env.JWT_EXPIRE || '30d'
+      expiresIn: expire
     }
   );
 };
