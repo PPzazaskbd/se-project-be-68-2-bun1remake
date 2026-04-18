@@ -101,10 +101,12 @@ app.use(cors());
 const authRoutes = require('./routes/auth');
 const hotelsRoutes = require('./routes/Hotel');
 const bookingRoutes = require('./routes/bookings'); // routes/booking.js (uses mergeParams)
+const commentsRoutes = require('./routes/comments'); // standalone DELETE /comments/:id
 // Mount routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/hotels', hotelsRoutes);      // includes nested /:hotelId/bookings and /:hotelId/comments
 app.use('/api/v1/bookings', bookingRoutes);   // optional direct bookings endpoint
+app.use('/api/v1/comments', commentsRoutes);  // standalone comments (DELETE /:id)
 
 // Health check (optional)
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));

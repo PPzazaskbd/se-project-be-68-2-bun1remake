@@ -1,66 +1,80 @@
 const Comment = require('../models/Comment');
 const Hotel = require('../models/Hotel');
-const User = require('../models/User');
-// @desc    GET all comments
-// @route   GET /api/v1/comments
+
+// @desc    GET all comments for a hotel
+// @route   GET /api/v1/hotels/:hotelId/comments
 // @access  Public
 exports.getComments = async (req, res, next) => {
-  let query;
+  try {
+    let query;
 
-  if (req.params.hotelId) {
-    query = Comment.find({ hotel: req.params.hotelId });
-  } 
-  else {
-    if (req.user.role !== 'admin') {
-      query = Comment.find({ user: req.user.id });
+    if (req.params.hotelId) {
+      query = Comment.find({ hotel: req.params.hotelId });
     } else {
       query = Comment.find();
     }
-  }
 
-  try {
-    const comments = await query.populate(
-        [{
-    path: 'hotel',
-    select: 'name imgsrc'
-  },
-  {
-    path: 'user',
-    select: 'name email' 
-  }]    
-    );
+    const comments = await query.populate([
+      { path: 'hotel', select: 'name imgSrc' },
+      { path: 'user', select: 'name email' }
+    ]);
+
     res.status(200).json({ success: true, count: comments.length, data: comments });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Server Error" });
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server Error' });
   }
 };
 
-// @desc    Create new comments
-// @route   POST /api/v1/comments
+// @desc    Create new comment
+// @route   POST /api/v1/hotels/:hotelId/comments
 // @access  Private
 exports.createComment = async (req, res, next) => {
   try {
-    // Add hotelId to req.body from URL params
     req.body.hotel = req.params.hotelId;
-    
-    // Add userId to req.body from logged in user
     req.body.user = req.user.id;
 
-    // Check if the hotel exists before commenting
+    // Frontend may send 'comment' field; backend schema uses 'text'
+    if (req.body.comment && !req.body.text) {
+      req.body.text = req.body.comment;
+      delete req.body.comment;
+    }
+
     const hotel = await Hotel.findById(req.params.hotelId);
     if (!hotel) {
-      return res.status(404).json({ success: false, message: "Hotel not found" });
+      return res.status(404).json({ success: false, message: 'Hotel not found' });
     }
 
     const comment = await Comment.create(req.body);
 
-    res.status(201).json({
-      success: true,
-      data: comment
-    });
+    res.status(201).json({ success: true, data: comment });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Could not create comment" });
+    res.status(500).json({ success: false, message: 'Could not create comment' });
   }
 };
 
+// @desc    Delete comment
+// @route   DELETE /api/v1/comments/:id
+// @access  Private (owner or admin)
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.id);
+
+    if (!comment) {
+      return res.status(404).json({ success: false, message: 'Comment not found' });
+    }
+
+    // Only allow owner or admin to delete
+    if (comment.user.toString() !== req.user.id && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Not authorized to delete this comment' });
+    }
+
+    await comment.deleteOne();
+
+    res.status(200).json({ success: true, data: {} });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Could not delete comment' });
+  }
+};
