@@ -2,7 +2,7 @@ const hotelFilter = (query) => {
     let mongoQuery = {};
 
     if (query.province) {
-        mongoQuery.province = query.province;
+       mongoQuery.province = { $in: query.province.split(',') };
     }
 
     if (query.priceRange) {
@@ -13,12 +13,25 @@ const hotelFilter = (query) => {
         else if (p === '4') mongoQuery.price = { $gte: 200 };
     }
 
-    if (query.review) {
-        mongoQuery.review = { $gte: Number(query.review) };
+     if (query.review) {
+        const r = parseInt(query.review);
+        if (!isNaN(r)) {
+            const REVIEW_MAP = {
+                1: { $gte: 1.0, $lt: 2.0 },
+                2: { $gte: 2.0, $lt: 3.0 },
+                3: { $gte: 3.0, $lt: 4.0 },
+                4: { $gte: 4.0, $lt: 5.0 },
+                5: { $eq: 5.0 }
+            };
+            if (REVIEW_MAP[r]) {
+                mongoQuery.review = REVIEW_MAP[r];
+            }
+        }
     }
 
     if (query.accommodationType) {
-        mongoQuery.accommodationType = query.accommodationType;
+        const types = query.accommodationType.split(',');
+        mongoQuery.accommodationType = { $in: types };
     }
 
     if (query.facility) {
