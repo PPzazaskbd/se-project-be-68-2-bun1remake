@@ -57,7 +57,7 @@ const HotelSchema = new mongoose.Schema({
   },
   accommodationType:{//Hotel Resort
     type: String,
-    required: [true, 'Please add a accommodation type']
+    required: [true, 'Please add a accommodation type'],
     default: "Hotel"
   },
   specializations: {
