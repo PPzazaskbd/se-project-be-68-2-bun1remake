@@ -95,7 +95,7 @@ app.use(limiter);
 app.use(hpp());
 
 // Enable CORS
-// app.use(cors());
+app.use(cors());
 
 // Routes (updated names)
 const authRoutes = require('./routes/auth');
