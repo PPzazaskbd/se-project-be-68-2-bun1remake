@@ -11,13 +11,8 @@ exports.getComments = async (req, res, next) => {
     query = Comment.find({ hotel: req.params.hotelId });
   } 
   else {
-    if (req.user.role !== 'admin') {
-      query = Comment.find({ user: req.user.id });
-    } else {
       query = Comment.find();
-    }
   }
-
   try {
     const comments = await query.populate(
         [{
