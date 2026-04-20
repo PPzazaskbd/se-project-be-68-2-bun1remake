@@ -94,7 +94,18 @@ exports.deleteComment = async (req, res, next) => {
         message: `Comment not found with id ${req.params.id}`
       });
     }
+
+    if (
+      comment.user.toString() !== req.user.id &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: `NOt authorized to delete this comment`
+      }); 
+    }
     //Delete comment just one
+    if(comment.p)
     await comment.deleteOne();
 
     res.status(200).json({ success: true, data: {} });
