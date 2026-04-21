@@ -11,13 +11,8 @@ exports.getComments = async (req, res, next) => {
     query = Comment.find({ hotel: req.params.hotelId });
   } 
   else {
-    if (req.user.role !== 'admin') {
-      query = Comment.find({ user: req.user.id });
-    } else {
       query = Comment.find();
-    }
   }
-
   try {
     const comments = await query.populate(
         [{
@@ -64,3 +59,58 @@ exports.createComment = async (req, res, next) => {
   }
 };
 
+// @desc    Update comment
+// @route   PUT /api/v1/comments
+// @access  Private
+exports.updateComment = async (req, res, next) => {
+  try {
+    const comment = await Comment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    //if comment not found then return
+    if (!comment) {
+      return res.status(404).json({ success: false });
+    }
+
+    res.status(200).json({ success: true, data: comment });
+  } catch (err) {
+    res.status(400).json({ success: false });
+  }
+
+};
+
+// @desc    Delete comment
+// @route   DELETE /api/v1/comments
+// @access  Private
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const comment = await Comment.findById(req.params.id);
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        message: `Comment not found with id ${req.params.id}`
+      });
+    }
+
+    if (
+      comment.user.toString() !== req.user.id &&
+      req.user.role !== 'admin'
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: `NOt authorized to delete this comment`
+      }); 
+    }
+    //Delete comment just one
+    if(comment.p)
+    await comment.deleteOne();
+
+    res.status(200).json({ success: true, data: {} });
+  } catch (err) {
+    res.status(400).json({ success: false });
+  }
+
+};
