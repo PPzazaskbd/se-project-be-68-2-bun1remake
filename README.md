@@ -94,6 +94,17 @@ be-project-68-bun1/
 | DELETE | `/api/v1/bookings/:id` | Delete booking | Yes |
 | GET | `/api/v1/hotels/:hotelId/bookings` | Get bookings by hotel | Admin |
 
+### (TODO)**Comment Endpoints**
+
+| Method | Endpoint | Description | Auth |
+| -------- | ---------- | ------------- | ------ |
+| GET | `/api/v1/comments` | Get all comments  | Yes |
+| GET | `/api/v1/bookings/:id` | Get single booking | Yes |
+| POST | `/api/v1/hotels/:hotelId/bookings` | Create booking | Yes |
+| PUT | `/api/v1/bookings/:id` | Update booking | Yes |
+| DELETE | `/api/v1/comments/:id` | Delete booking | Yes |
+| GET | `/api/v1/hotels/:hotelId/comments` | Get bookings by hotel | Admin |
+
 ---
 
 ## Example Requests
