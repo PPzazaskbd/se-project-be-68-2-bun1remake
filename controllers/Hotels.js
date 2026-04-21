@@ -158,7 +158,7 @@ exports.deleteHotel = async (req, res, next) => {
 
     await Booking.deleteMany({ hotel: req.params.id });
     await Comment.deleteMany({ hotel: req.params.id }); 
-    
+
 
     await hotel.deleteOne();
 

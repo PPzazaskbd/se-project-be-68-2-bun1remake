@@ -1,9 +1,9 @@
 const express = require('express');
 const {
   getComments,
-  createComment
-  //updateComment,
-  //deleteComment
+  createComment,
+  updateComment,
+  deleteComment
 } = require('../controllers/Comments');
 
 const { protect } = require('../middleware/auth');
@@ -17,7 +17,7 @@ router
 
 router
   .route('/:id')
-  //.put(protect, updateComment)
-  //.delete(protect, deleteComment);
+  .put(protect, updateComment)
+  .delete(protect, deleteComment);
 
 module.exports = router;
