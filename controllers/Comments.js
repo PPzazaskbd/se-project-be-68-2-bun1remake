@@ -105,7 +105,7 @@ exports.deleteComment = async (req, res, next) => {
       }); 
     }
     //Delete comment just one
-    if(comment.p)
+    // if(comment.p)
     await comment.deleteOne();
 
     res.status(200).json({ success: true, data: {} });
