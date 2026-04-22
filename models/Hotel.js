@@ -29,6 +29,7 @@ const HotelSchema = new mongoose.Schema({
   imgSrc: {
     type: String,
     default: 'default',
+    required: [true, 'Please add a Hotel Photo'],
     trim: true
   },
   address: {
